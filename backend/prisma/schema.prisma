@@ -1,0 +1,188 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USUARIOS
+// ============================================
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(255)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  rol          String   @default("vendedor") @db.VarChar(50)
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  ventas       Venta[]
+  auditoria    Auditoria[]
+  
+  @@map("usuarios")
+}
+
+// ============================================
+// CATEGORÍAS
+// ============================================
+model Categoria {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @unique @db.VarChar(255)
+  descripcion  String?  @db.Text
+  activo       Boolean  @default(true)
+  existe       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  productos    Producto[]
+  
+  @@map("categorias")
+}
+
+// ============================================
+// PRODUCTOS
+// ============================================
+model Producto {
+  id            Int      @id @default(autoincrement())
+  codigo        String   @unique @db.VarChar(100)
+  nombre        String   @db.VarChar(255)
+  descripcion   String?  @db.Text
+  categoriaId   Int?
+  unidadMedida  String   @default("UNI") @db.VarChar(50)
+  precioBase    Decimal  @db.Decimal(10, 2)
+  ivaIncluido   Boolean  @default(true)
+  porcentajeIva Int      @default(10)
+  stockActual   Int      @default(0)
+  stockMinimo   Int      @default(0)
+  activo        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  categoria     Categoria?   @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  precios       Precio[]
+  detallesVenta DetalleVenta[]
+  
+  @@map("productos")
+}
+
+// ============================================
+// LISTAS DE PRECIOS
+// ============================================
+model ListaPrecios {
+  id                  Int      @id @default(autoincrement())
+  nombre              String   @unique @db.VarChar(255)
+  descripcion         String?  @db.Text
+  descuentoPorcentaje Decimal  @default(0) @db.Decimal(5, 2)
+  activo              Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  
+  precios             Precio[]
+  
+  @@map("listas_precios")
+}
+
+// ============================================
+// PRECIOS
+// ============================================
+model Precio {
+  listaPreciosId Int
+  productoId     Int
+  precioVenta    Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  
+  listaPrecio    ListaPrecios @relation(fields: [listaPreciosId], references: [id], onDelete: Cascade)
+  producto       Producto     @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  
+  @@id([listaPreciosId, productoId])
+  @@map("precios")
+}
+
+// ============================================
+// CLIENTES
+// ============================================
+model Cliente { 
+  id           Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(255)
+  documento    String   @unique @db.VarChar(50)
+  email        String?  @unique @db.VarChar(255)
+  telefono     String?  @db.VarChar(20)
+  direccion    String?  @db.Text
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  ventas       Venta[]
+  
+  @@map("clientes")
+}
+
+// ============================================
+// VENTAS
+// ============================================
+model Venta {
+  id             Int      @id @default(autoincrement())
+  numeroFactura  String   @unique @db.VarChar(100)
+  clienteId      Int
+  usuarioId      Int
+  fechaVenta     DateTime @default(now()) @map("fecha_venta")
+  subtotal       Decimal  @db.Decimal(12, 2)
+  iva            Decimal  @db.Decimal(12, 2)
+  total          Decimal  @db.Decimal(12, 2)
+  estado         String   @default("pendiente") @db.VarChar(50)
+  observaciones  String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  
+  cliente        Cliente       @relation(fields: [clienteId], references: [id])
+  usuario        Usuario       @relation(fields: [usuarioId], references: [id])
+  detalles       DetalleVenta[]
+  
+  @@map("ventas")
+}
+
+// ============================================
+// DETALLES DE VENTA
+// ============================================
+model DetalleVenta {
+  id          Int     @id @default(autoincrement())
+  ventaId     Int
+  productoId  Int
+  cantidad    Int
+  precioUnit  Decimal @db.Decimal(10, 2)
+  descuento   Decimal @default(0) @db.Decimal(10, 2)
+  iva         Decimal @db.Decimal(10, 2)
+  subtotal    Decimal @db.Decimal(12, 2)
+  
+  venta       Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  producto    Producto @relation(fields: [productoId], references: [id])
+  
+  @@map("detalles_venta")
+}
+// ============================================
+// AUDITORÍA
+// ============================================
+model Auditoria {
+  id            Int      @id @default(autoincrement())
+  usuarioId     Int
+  accion        String   @db.VarChar(100)
+  tabla         String   @db.VarChar(100)
+  registro_id   Int?
+  datos_antes   String?  @db.Text
+  datos_despues String?  @db.Text
+  ip_address    String?  @db.VarChar(50)
+  user_agent    String?  @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  @@map("auditoria")
+}
