@@ -30,10 +30,11 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      AsyncStorage.removeItem("userToken");
-      AsyncStorage.removeItem("user");
+      console.log("⚠️ [API] Error 401 - Sesión no válida");
+      // No eliminar tokens aquí porque puede causar conflictos
+      // El logout manual ya los elimina
     }
     return Promise.reject(error);
   }

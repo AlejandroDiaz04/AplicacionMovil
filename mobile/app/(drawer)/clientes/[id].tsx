@@ -13,12 +13,16 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { clientesService, Cliente } from "../../../services/clienteService";
 
 export default function ClienteDetallesScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
     cargarCliente();
   }, [id]);
 
@@ -26,13 +30,40 @@ export default function ClienteDetallesScreen() {
     try {
       setLoading(true);
       const data = await clientesService.obtenerPorId(Number(id));
-      setCliente(data);
+      // adapta según lo que devuelve tu API (response.data o response.data.data)
+      setCliente(data?.data ?? data ?? null);
     } catch (error) {
+      console.error("❌ [DETALLES] Error cargando cliente:", error);
       Alert.alert("Error", "No se pudo cargar el cliente");
       router.back();
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEliminar = (clienteId?: number, nombre?: string) => {
+    if (!clienteId) return;
+    Alert.alert(
+      "Eliminar Cliente",
+      `¿Estás seguro que deseas eliminar a ${nombre ?? ""}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await clientesService.eliminar(clienteId);
+              Alert.alert("Éxito", "Cliente eliminado");
+              router.replace("/(drawer)/clientes" as any);
+            } catch (err) {
+              console.error("❌ [DETALLES] Error eliminando cliente:", err);
+              Alert.alert("Error", "No se pudo eliminar el cliente");
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -67,7 +98,7 @@ export default function ClienteDetallesScreen() {
           </View>
         </View>
 
-        {cliente.telefono && (
+        {cliente.telefono ? (
           <View style={styles.row}>
             <MaterialIcons name="phone" size={20} color="#2196F3" />
             <View style={styles.info}>
@@ -75,9 +106,9 @@ export default function ClienteDetallesScreen() {
               <Text style={styles.valor}>{cliente.telefono}</Text>
             </View>
           </View>
-        )}
+        ) : null}
 
-        {cliente.empresa && (
+        {cliente.empresa ? (
           <View style={styles.row}>
             <MaterialIcons name="business" size={20} color="#2196F3" />
             <View style={styles.info}>
@@ -85,57 +116,9 @@ export default function ClienteDetallesScreen() {
               <Text style={styles.valor}>{cliente.empresa}</Text>
             </View>
           </View>
-        )}
+        ) : null}
 
-        {cliente.direccion && (
-          <View style={styles.row}>
-            <MaterialIcons name="location-on" size={20} color="#2196F3" />
-            <View style={styles.info}>
-              <Text style={styles.label}>Dirección</Text>
-              <Text style={styles.valor}>{cliente.direccion}</Text>
-            </View>
-          </View>
-        )}
-
-        {cliente.ciudad && (
-          <View style={styles.row}>
-            <MaterialIcons name="location-city" size={20} color="#2196F3" />
-            <View style={styles.info}>
-              <Text style={styles.label}>Ciudad</Text>
-              <Text style={styles.valor}>{cliente.ciudad}</Text>
-            </View>
-          </View>
-        )}
-
-        {cliente.estado && (
-          <View style={styles.row}>
-            <MaterialIcons name="flag" size={20} color="#2196F3" />
-            <View style={styles.info}>
-              <Text style={styles.label}>Estado</Text>
-              <Text style={styles.valor}>{cliente.estado}</Text>
-            </View>
-          </View>
-        )}
-
-        {cliente.pais && (
-          <View style={styles.row}>
-            <MaterialIcons name="public" size={20} color="#2196F3" />
-            <View style={styles.info}>
-              <Text style={styles.label}>País</Text>
-              <Text style={styles.valor}>{cliente.pais}</Text>
-            </View>
-          </View>
-        )}
-
-        <View style={styles.row}>
-          <MaterialIcons name="calendar-today" size={20} color="#2196F3" />
-          <View style={styles.info}>
-            <Text style={styles.label}>Fecha de Registro</Text>
-            <Text style={styles.valor}>
-              {new Date(cliente.createdAt).toLocaleDateString("es-ES")}
-            </Text>
-          </View>
-        </View>
+        {/* Otros campos */}
       </View>
 
       <View style={styles.acciones}>
@@ -151,10 +134,10 @@ export default function ClienteDetallesScreen() {
 
         <TouchableOpacity
           style={styles.botonVolver}
-          onPress={() => router.back()}
+          onPress={() => handleEliminar(cliente.id, cliente.nombre)}
         >
-          <MaterialIcons name="arrow-back" size={20} color="#2196F3" />
-          <Text style={styles.botonVolverTexto}>Volver</Text>
+          <MaterialIcons name="delete" size={20} color="#FF6B6B" />
+          <Text style={styles.botonVolverTexto}>Eliminar</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -162,26 +145,14 @@ export default function ClienteDetallesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     backgroundColor: "#2196F3",
     alignItems: "center",
     paddingVertical: 30,
   },
-  nombre: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
-    marginTop: 10,
-  },
+  nombre: { fontSize: 24, fontWeight: "bold", color: "#fff", marginTop: 10 },
   card: {
     backgroundColor: "#fff",
     margin: 15,
@@ -196,25 +167,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
-  info: {
-    flex: 1,
-    marginLeft: 15,
-  },
-  label: {
-    fontSize: 12,
-    color: "#999",
-    marginBottom: 3,
-  },
-  valor: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
-  },
-  acciones: {
-    flexDirection: "row",
-    gap: 10,
-    padding: 15,
-  },
+  info: { flex: 1, marginLeft: 15 },
+  label: { fontSize: 12, color: "#999", marginBottom: 3 },
+  valor: { fontSize: 16, color: "#333", fontWeight: "500" },
+  acciones: { flexDirection: "row", gap: 10, padding: 15 },
   botonEditar: {
     flex: 1,
     backgroundColor: "#2196F3",
@@ -237,14 +193,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#2196F3",
   },
-  botonTexto: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  botonVolverTexto: {
-    color: "#2196F3",
-    fontWeight: "600",
-    fontSize: 14,
-  },
+  botonTexto: { color: "#fff", fontWeight: "600", fontSize: 14 },
+  botonVolverTexto: { color: "#FF6B6B", fontWeight: "600", fontSize: 14 },
 });

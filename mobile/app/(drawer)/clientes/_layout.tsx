@@ -10,7 +10,7 @@ export default function ClientesLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="[id]" />
       <Stack.Screen name="crear" />
-      <Stack.Screen name="editar" />
+      <Stack.Screen name="editar/[id]" />
     </Stack>
   );
 }

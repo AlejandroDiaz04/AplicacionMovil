@@ -53,7 +53,8 @@ export default function ClientesScreen() {
     const filtered = clientes.filter(
       (cliente) =>
         cliente.nombre.toLowerCase().includes(texto.toLowerCase()) ||
-        cliente.email.toLowerCase().includes(texto.toLowerCase())
+        (cliente.email &&
+          cliente.email.toLowerCase().includes(texto.toLowerCase()))
     );
     setFilteredClientes(filtered);
   };
@@ -63,15 +64,30 @@ export default function ClientesScreen() {
       "Eliminar Cliente",
       `¿Estás seguro de que deseas eliminar a ${nombre}?`,
       [
-        { text: "Cancelar", onPress: () => {} },
+        { text: "Cancelar", style: "cancel" },
         {
           text: "Eliminar",
           onPress: async () => {
             try {
               await clientesService.eliminar(id);
+              // Actualizar la lista inmediatamente
+              const nuevosClientes = clientes.filter((c) => c.id !== id);
+              setClientes(nuevosClientes);
+              setFilteredClientes(
+                nuevosClientes.filter(
+                  (cliente) =>
+                    cliente.nombre
+                      .toLowerCase()
+                      .includes(busqueda.toLowerCase()) ||
+                    (cliente.email &&
+                      cliente.email
+                        .toLowerCase()
+                        .includes(busqueda.toLowerCase()))
+                )
+              );
               Alert.alert("Éxito", "Cliente eliminado correctamente");
-              cargarClientes();
             } catch (error) {
+              console.error("❌ [CLIENTES] Error eliminando:", error);
               Alert.alert("Error", "No se pudo eliminar el cliente");
             }
           },

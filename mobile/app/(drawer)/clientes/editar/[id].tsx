@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { clientesService, Cliente } from "@/services/clienteService";
+import { clientesService, Cliente } from "../../../../services/clienteService";
 
 export default function EditarClienteScreen() {
   const { id } = useLocalSearchParams();

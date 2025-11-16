@@ -4,7 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { DrawerNavigationEventMap } from "@react-navigation/drawer";
 import { NavigationState, ParamListBase } from "@react-navigation/native";
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -18,9 +18,30 @@ function CustomDrawerContent(props: any) {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("userToken");
-    await AsyncStorage.removeItem("user");
-    router.replace("/(auth)/login" as any);
+    Alert.alert("Cerrar Sesión", "¿Estás seguro de que deseas cerrar sesión?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Sí, cerrar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            console.log("🔓 [LOGOUT] Cerrando sesión...");
+            await AsyncStorage.removeItem("userToken");
+            await AsyncStorage.removeItem("user");
+            console.log("✅ [LOGOUT] Tokens eliminados");
+
+            // Usar replace para forzar la navegación y limpiar el stack
+            router.replace("/login" as any);
+          } catch (error) {
+            console.error("❌ [LOGOUT] Error cerrando sesión:", error);
+            Alert.alert("Error", "No se pudo cerrar la sesión correctamente");
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -68,7 +89,7 @@ export default function DrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="productos"
+          name="productos/index"
           options={{
             title: "Productos",
             drawerLabel: "Productos",
@@ -79,7 +100,7 @@ export default function DrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="ventas"
+          name="ventas/index"
           options={{
             title: "Ventas",
             drawerLabel: "Ventas",
@@ -90,7 +111,7 @@ export default function DrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="reportes"
+          name="reportes/index"
           options={{
             title: "Reportes",
             drawerLabel: "Reportes",
