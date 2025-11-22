@@ -11,7 +11,7 @@ export interface Cliente {
   ciudad?: string;
   estado?: string;
   pais?: string;
-  activo?: boolean;
+  isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -28,8 +28,11 @@ export interface CreateClienteData {
 }
 
 export const clientesService = {
+  // Obtener solo clientes no eliminados (isDeleted=false)
   obtenerTodos: async (busqueda?: string) => {
-    const params = busqueda ? { search: busqueda } : {};
+    const params = busqueda
+      ? { search: busqueda, isDeleted: "false" }
+      : { isDeleted: "false" };
     const response = await api.get("/clientes", { params });
     return response.data.data || [];
   },
@@ -69,8 +72,35 @@ export const clientesService = {
     return response.data.data ?? response.data;
   },
 
+  // Soft delete (el backend cambia isDeleted=true)
   eliminar: async (id: number) => {
-    await api.delete(`/clientes/${id}`);
-    return true;
+    try {
+      console.log("🗑️ [CLIENTES] Eliminando cliente (soft delete):", id);
+      const response = await api.delete(`/clientes/${id}`);
+      console.log("✅ [CLIENTES] Cliente eliminado:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error(
+        "❌ [CLIENTES] Error eliminando:",
+        error?.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+
+  // Restaurar cliente eliminado (cambiar isDeleted a false)
+  restaurar: async (id: number) => {
+    try {
+      console.log("♻️ [CLIENTES] Restaurando cliente:", id);
+      const response = await api.patch(`/clientes/${id}/restaurar`);
+      console.log("✅ [CLIENTES] Cliente restaurado:", response.data);
+      return response.data.data ?? response.data;
+    } catch (error: any) {
+      console.error(
+        "❌ [CLIENTES] Error restaurando:",
+        error?.response?.data || error.message
+      );
+      throw error;
+    }
   },
 };

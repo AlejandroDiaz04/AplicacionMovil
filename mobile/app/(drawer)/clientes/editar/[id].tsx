@@ -95,7 +95,7 @@ export default function EditarClienteScreen() {
 
       <View style={styles.form}>
         <View style={styles.field}>
-          <Text style={styles.label}>Nombre *</Text>
+          <Text style={styles.label}>Nombre </Text>
           <TextInput
             style={styles.input}
             placeholder="Nombre completo"
@@ -106,7 +106,7 @@ export default function EditarClienteScreen() {
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Email *</Text>
+          <Text style={styles.label}>Email </Text>
           <TextInput
             style={styles.input}
             placeholder="correo@ejemplo.com"

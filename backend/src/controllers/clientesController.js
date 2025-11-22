@@ -6,11 +6,15 @@ const prisma = new PrismaClient();
 // ============================================
 const obtenerClientes = async (req, res) => {
   try {
-    const { skip = 0, take = 10, activo } = req.query;
+    const { skip = 0, take = 100, isDeleted } = req.query;
 
+    // Por defecto, solo mostrar clientes no eliminados
     const where = {};
-    if (activo !== undefined) {
-      where.activo = activo === "true";
+    if (isDeleted !== undefined) {
+      where.isDeleted = isDeleted === "true";
+    } else {
+      // Si no se especifica, mostrar solo no eliminados
+      where.isDeleted = false;
     }
 
     const clientes = await prisma.cliente.findMany({
@@ -156,7 +160,7 @@ const crearCliente = async (req, res) => {
 const actualizarCliente = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, email, telefono, direccion, activo } = req.body;
+    const { nombre, email, telefono, direccion, isDeleted } = req.body;
 
     const clienteExiste = await prisma.cliente.findUnique({
       where: { id: parseInt(id) },
@@ -190,7 +194,7 @@ const actualizarCliente = async (req, res) => {
         email,
         telefono,
         direccion,
-        activo,
+        isDeleted,
       },
     });
 
@@ -228,7 +232,7 @@ const eliminarCliente = async (req, res) => {
     // Eliminación lógica (soft delete)
     const clienteEliminado = await prisma.cliente.update({
       where: { id: parseInt(id) },
-      data: { activo: false },
+      data: { isDeleted: true },
     });
 
     res.json({

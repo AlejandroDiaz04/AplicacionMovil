@@ -19,7 +19,7 @@ model Usuario {
   email        String   @unique @db.VarChar(255)
   passwordHash String   @map("password_hash") @db.VarChar(255)
   rol          String   @default("vendedor") @db.VarChar(50)
-  activo       Boolean  @default(true)
+  isDeleted    Boolean  @default(false) @map("is_deleted")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   
@@ -36,7 +36,7 @@ model Categoria {
   id           Int      @id @default(autoincrement())
   nombre       String   @unique @db.VarChar(255)
   descripcion  String?  @db.Text
-  activo       Boolean  @default(true)
+  isDeleted    Boolean  @default(false) @map("is_deleted")
   existe       Boolean  @default(true)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -47,25 +47,58 @@ model Categoria {
 }
 
 // ============================================
+// GRUPOS
+// ============================================
+model Grupo {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @unique @db.VarChar(255)
+  descripcion  String?  @db.Text
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  productos    Producto[]
+  
+  @@map("grupos")
+}
+
+// ============================================
+// MARCAS
+// ============================================
+model Marca {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @unique @db.VarChar(255)
+  descripcion  String?  @db.Text
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  productos    Producto[]
+  
+  @@map("marcas")
+}
+
+// ============================================
 // PRODUCTOS
 // ============================================
 model Producto {
   id            Int      @id @default(autoincrement())
   codigo        String   @unique @db.VarChar(100)
   nombre        String   @db.VarChar(255)
-  descripcion   String?  @db.Text
   categoriaId   Int?
+  grupoId       Int?
+  marcaId       Int?
   unidadMedida  String   @default("UNI") @db.VarChar(50)
-  precioBase    Decimal  @db.Decimal(10, 2)
   ivaIncluido   Boolean  @default(true)
   porcentajeIva Int      @default(10)
   stockActual   Int      @default(0)
-  stockMinimo   Int      @default(0)
-  activo        Boolean  @default(true)
+  isDeleted     Boolean  @default(false) @map("is_deleted")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
   
   categoria     Categoria?   @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  grupo         Grupo?       @relation(fields: [grupoId], references: [id], onDelete: SetNull)
+  marca         Marca?       @relation(fields: [marcaId], references: [id], onDelete: SetNull)
   precios       Precio[]
   detallesVenta DetalleVenta[]
   
@@ -80,7 +113,7 @@ model ListaPrecios {
   nombre              String   @unique @db.VarChar(255)
   descripcion         String?  @db.Text
   descuentoPorcentaje Decimal  @default(0) @db.Decimal(5, 2)
-  activo              Boolean  @default(true)
+  isDeleted           Boolean  @default(false) @map("is_deleted")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
   
@@ -116,7 +149,7 @@ model Cliente {
   email        String?  @unique @db.VarChar(255)
   telefono     String?  @db.VarChar(20)
   direccion    String?  @db.Text
-  activo       Boolean  @default(true)
+  isDeleted    Boolean  @default(false) @map("is_deleted")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   

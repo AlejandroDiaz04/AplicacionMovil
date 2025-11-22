@@ -33,8 +33,8 @@ const login = async (req, res) => {
       });
     }
 
-    // Verificar que el usuario esté activo
-    if (!usuario.activo) {
+    // Verificar que el usuario no esté eliminado
+    if (usuario.isDeleted) {
       return res.status(403).json({
         error: true,
         message: "Usuario desactivado",
@@ -162,7 +162,7 @@ const obtenerPerfil = async (req, res) => {
         nombre: true,
         email: true,
         rol: true,
-        activo: true,
+        isDeleted: true,
         createdAt: true,
         updatedAt: true,
       },

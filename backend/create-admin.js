@@ -17,7 +17,7 @@ async function main() {
         email: "alejandrodiaz04zr@gmail.com",
         passwordHash: passwordHash,
         rol: "admin",
-        activo: true,
+        isDeleted: false,
       },
     });
 

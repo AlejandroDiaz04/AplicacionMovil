@@ -68,6 +68,8 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/clientes", require("./routes/clientes"));
 app.use("/api/productos", require("./routes/productos"));
 app.use("/api/categorias", require("./routes/categorias"));
+app.use("/api/grupos", require("./routes/grupos"));
+app.use("/api/marcas", require("./routes/marcas"));
 app.use("/api/precios", require("./routes/precios"));
 app.use("/api/ventas", require("./routes/ventas"));
 app.use("/api/reportes", require("./routes/reportes"));

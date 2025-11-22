@@ -62,33 +62,30 @@ export default function ClientesScreen() {
   const handleEliminar = (id: number, nombre: string) => {
     Alert.alert(
       "Eliminar Cliente",
-      `¿Estás seguro de que deseas eliminar a ${nombre}?`,
+      `¿Estás seguro de que deseas eliminar a ${nombre}?\n\nEsta acción se puede deshacer más tarde.`,
       [
         { text: "Cancelar", style: "cancel" },
         {
           text: "Eliminar",
           onPress: async () => {
             try {
+              setLoading(true);
               await clientesService.eliminar(id);
-              // Actualizar la lista inmediatamente
-              const nuevosClientes = clientes.filter((c) => c.id !== id);
-              setClientes(nuevosClientes);
-              setFilteredClientes(
-                nuevosClientes.filter(
-                  (cliente) =>
-                    cliente.nombre
-                      .toLowerCase()
-                      .includes(busqueda.toLowerCase()) ||
-                    (cliente.email &&
-                      cliente.email
-                        .toLowerCase()
-                        .includes(busqueda.toLowerCase()))
-                )
-              );
+
+              // Recargar la lista completa desde el servidor
+              // Esto asegura que solo veamos clientes activos
+              await cargarClientes();
+
               Alert.alert("Éxito", "Cliente eliminado correctamente");
-            } catch (error) {
+            } catch (error: any) {
               console.error("❌ [CLIENTES] Error eliminando:", error);
-              Alert.alert("Error", "No se pudo eliminar el cliente");
+              Alert.alert(
+                "Error",
+                error?.response?.data?.message ||
+                  "No se pudo eliminar el cliente"
+              );
+            } finally {
+              setLoading(false);
             }
           },
           style: "destructive",

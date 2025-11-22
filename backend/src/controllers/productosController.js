@@ -6,11 +6,14 @@ const prisma = new PrismaClient();
 // ============================================
 const obtenerProductos = async (req, res) => {
   try {
-    const { skip = 0, take = 10, activo, categoriaId } = req.query;
+    const { skip = 0, take = 100, isDeleted, categoriaId } = req.query;
 
     const where = {};
-    if (activo !== undefined) {
-      where.activo = activo === "true";
+    if (isDeleted !== undefined) {
+      where.isDeleted = isDeleted === "true";
+    } else {
+      // Por defecto, solo mostrar productos no eliminados
+      where.isDeleted = false;
     }
     if (categoriaId) {
       where.categoriaId = parseInt(categoriaId);
@@ -22,6 +25,12 @@ const obtenerProductos = async (req, res) => {
       take: parseInt(take),
       include: {
         categoria: {
+          select: { id: true, nombre: true },
+        },
+        grupo: {
+          select: { id: true, nombre: true },
+        },
+        marca: {
           select: { id: true, nombre: true },
         },
       },
@@ -59,6 +68,8 @@ const obtenerProductoPorId = async (req, res) => {
       where: { id: parseInt(id) },
       include: {
         categoria: true,
+        grupo: true,
+        marca: true,
         precios: {
           include: {
             listaPrecio: { select: { id: true, nombre: true } },
@@ -224,7 +235,7 @@ const eliminarProducto = async (req, res) => {
     // Eliminación lógica (soft delete)
     const productoEliminado = await prisma.producto.update({
       where: { id: parseInt(id) },
-      data: { activo: false },
+      data: { isDeleted: true },
     });
 
     res.json({

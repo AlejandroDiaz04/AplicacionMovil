@@ -33,6 +33,33 @@ router.post("/", authenticateToken, clientesController.crearCliente);
 // Actualizar cliente
 router.put("/:id", authenticateToken, clientesController.actualizarCliente);
 
+// Restaurar cliente eliminado (reactivar)
+router.patch("/:id/restaurar", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { PrismaClient } = require("@prisma/client");
+    const prisma = new PrismaClient();
+
+    const cliente = await prisma.cliente.update({
+      where: { id: parseInt(id) },
+      data: { isDeleted: false },
+    });
+
+    res.json({
+      success: true,
+      message: "Cliente restaurado exitosamente",
+      data: cliente,
+    });
+
+    await prisma.$disconnect();
+  } catch (error) {
+    res.status(500).json({
+      error: true,
+      message: error.message,
+    });
+  }
+});
+
 // Eliminar cliente (soft delete)
 router.delete("/:id", authenticateToken, clientesController.eliminarCliente);
 

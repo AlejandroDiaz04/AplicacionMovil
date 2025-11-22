@@ -128,7 +128,7 @@ export default function CrearClienteScreen() {
       <View style={styles.form}>
         {/* RUC y DV */}
         <View style={styles.field}>
-          <Text style={styles.labelRequerido}>RUC *</Text>
+          <Text style={styles.labelRequerido}>RUC</Text>
           <View style={styles.rucContainer}>
             <TextInput
               style={[styles.input, styles.rucInput]}
@@ -157,7 +157,7 @@ export default function CrearClienteScreen() {
 
         {/* Nombre */}
         <View style={styles.field}>
-          <Text style={styles.labelRequerido}>Nombre *</Text>
+          <Text style={styles.labelRequerido}>Nombre </Text>
           <TextInput
             style={styles.input}
             placeholder="Nombre completo del cliente"
@@ -169,7 +169,7 @@ export default function CrearClienteScreen() {
 
         {/* Tipo de Documento de Identidad */}
         <View style={styles.field}>
-          <Text style={styles.labelRequerido}>Tipo Doc. Identidad *</Text>
+          <Text style={styles.labelRequerido}>Tipo Doc. Identidad </Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={formData.tipoDocIdentidad}
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   picker: {
-    height: 50,
+    height: 60,
   },
   acciones: { flexDirection: "row", gap: 10, padding: 15 },
   boton: {
